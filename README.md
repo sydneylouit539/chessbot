@@ -10,4 +10,9 @@ allowing an extremely flexible range of skill levels for users to play with.
 
 ## Current Progress
 This bot is still in the extremely early stages of development, and the Elo
-level of the best bot in this project is current about *100*
+level of the best bot in this project is currently about *600*
+
+
+## Estimated Elo History
+ - 7/12/2024:   30 
+ - 7/13/2024:  644
