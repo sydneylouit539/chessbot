@@ -1,0 +1,4 @@
+*.ipynb
+/komodo*
+*.csv
+.ipynb*
