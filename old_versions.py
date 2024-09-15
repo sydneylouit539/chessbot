@@ -1,4 +1,4 @@
-
+import chess
 
 
 def next_move_0_0_1(board, moves_ahead, alpha, beta, player = True):
@@ -74,6 +74,39 @@ def next_move_0_0_2(board, moves_ahead, player = True, stem = True):
         return top_indices[minimax(new_scores, moves_ahead)]
 
 
+def next_move_0_0_3(board, moves_ahead, initial_state = 0, player = True, stem = True):
+    ## If no more moves, return the state of the board
+    moves = [board.san(i) for i in board.legal_moves]
+    #print(len(moves))
+    if moves_ahead == 1:
+        return score_board(board, moves, initial_state)
+    if len(moves) == 0:
+        if board.is_checkmate() and not player:
+            return [10000.]
+        if board.is_checkmate() and player:
+            return [-10000.]
+        if board.is_stalemate():
+            return [0.]
+    scores = score_board(board, moves, initial_state)
+    assert len(scores) == len(moves), print(len(scores) - len(moves))
+    ## Keep top five moves
+    if len(scores) >= 20 and not stem:# moves_ahead % 2 == 1:
+        top_moves = sorted(scores, reverse = player)[:20]
+        top_indices = sorted(range(len(scores)), key=lambda j: scores[j], reverse = player)[:20]
+    else:
+        top_indices = range(len(scores))
+    new_scores = []
+    x = list(board.legal_moves)
+    for i in top_indices:
+        board.push(x[i])
+        new_scores.append(next_move_0_0_3(board, moves_ahead - 1, scores[i], not player, False))
+        board.pop()
+    if not stem:
+        return new_scores
+    else:
+        return top_indices[minimax(new_scores, moves_ahead)]
+
+
 def next_move_0_0_4(board, depth, alpha, beta, player, stem = True):
     if depth == 0 or board.is_checkmate() or board.is_stalemate():
         return score_board(board)
@@ -110,10 +143,220 @@ def next_move_0_0_4(board, depth, alpha, beta, player, stem = True):
         return value
 
 
+def next_move_0_0_5(board, depth, alpha, beta, player, stem = True, initial_state = 0):
+    if depth == 0 or board.is_checkmate() or board.is_stalemate():
+        return initial_state
+    x = sort_moves(board.legal_moves)
+    #x = [board.san(i) for i in board.legal_moves]
+    if player:
+        value = -10000
+        #x = board.legal_moves
+        if stem:
+            moves = []
+        for i in x:
+            ## Score the move
+            new_state = score_move(board, i, initial_state)
+            board.push(board.parse_san(i))
+            value = max(value, next_move_0_0_5(board, depth - 1, alpha, beta, False, False, new_state))
+            board.pop()
+            if value > beta:
+                break
+            alpha = max(alpha, value)
+            if stem:
+                moves.append(value)
+        if not stem:
+            return value
+        else:
+            print(alpha, beta)
+            return x[np.argmax(moves)]
+    else:
+        value = 10000
+        #x = board.legal_moves
+        for i in x:
+            ## Score the move
+            new_state = score_move(board, i, initial_state)
+            board.push(board.parse_san(i))
+            value = min(value, next_move_0_0_5(board, depth - 1, alpha, beta, True, False, new_state))
+            board.pop()
+            if value < alpha:
+                break
+            beta = min(beta, value)
+        return value
 
 
+def next_move_0_0_6(board, depth, alpha, beta, player, stem = True, initial_state = 0):
+    if depth == 0 or board.is_checkmate() or board.is_stalemate():
+        return initial_state
+    x = sort_moves(board.legal_moves)
+    #x = [board.san(i) for i in board.legal_moves]
+    if player:
+        value = -10000
+        #x = board.legal_moves
+        if stem:
+            moves = []
+        for i in x:
+            ## Score the move
+            new_state = score_move(board, i, initial_state)
+            board.push(board.parse_san(i))
+            value = max(value, next_move_0_0_6(board, depth - 1, alpha, beta, False, False, new_state))
+            board.pop()
+            if value > beta:
+                break
+            alpha = max(alpha, value)
+            if stem:
+                moves.append(value)
+        if not stem:
+            return value
+        else:
+            print(alpha, beta)
+            return x[np.argmax(moves)]
+    else:
+        value = 10000
+        #x = board.legal_moves
+        for i in x:
+            ## Score the move
+            new_state = score_move(board, i, initial_state)
+            board.push(board.parse_san(i))
+            value = min(value, next_move_0_0_6(board, depth - 1, alpha, beta, True, False, new_state))
+            board.pop()
+            if value < alpha:
+                break
+            beta = min(beta, value)
+            if stem:
+                moves.append(value)
+        if not stem:
+            return value
+        else:
+            print(alpha, beta)
+            return x[np.argmin(moves)]
+        return value
+
+
+## Old board scoring function
+def score_board(board):
+    score = 0
+    ## Encourage putting the other king in check
+    if board.is_check() and not board.turn:
+        score += 1
+    if board.is_stalemate():
+        return 0.
+    elif board.is_checkmate() and board.turn:
+        return -10000.
+    elif board.is_checkmate() and not board.turn:
+        return 10000.
+    ## Iterate over entire chessboard
+    for square in chess.SQUARES:
+        piece = board.piece_at(square)
+        if piece is not None:
+            val = piece_values[piece.piece_type] + 0.1 * (8 - chess.square_manhattan_distance(square, chess.E5))
+            if piece.color == chess.WHITE:
+                score += val
+            else:
+                score -= val
+    return score
+
+
+def next_move_0_0_7(board, depth, alpha = -10000, beta = 10000, player = True, stem = True, initial_state = 0):
+    if depth == 0 or board.is_checkmate() or board.is_stalemate():
+        return initial_state
+    x = sort_moves(board.legal_moves)
+    #x = [board.san(i) for i in board.legal_moves]
+    if player:
+        value = -10000
+        #x = board.legal_moves
+        if stem:
+            moves = []
+        for i in x:
+            ## Score the move
+            new_state = score_move(board, i, initial_state)
+            board.push(board.parse_san(i))
+            value = max(value, next_move_0_0_7(board, depth - 1, alpha, beta, False, False, new_state))
+            board.pop()
+            if value > beta:
+                break
+            alpha = max(alpha, value)
+            if stem:
+                moves.append(value)
+        if not stem:
+            return value
+        else:
+            print(alpha, beta)
+            return x[np.argmax(moves)]
+    else:
+        value = 10000
+        #x = board.legal_moves
+        for i in x:
+            ## Score the move
+            new_state = score_move(board, i, initial_state)
+            board.push(board.parse_san(i))
+            value = min(value, next_move_0_0_7(board, depth - 1, alpha, beta, True, False, new_state))
+            board.pop()
+            if value < alpha:
+                break
+            beta = min(beta, value)
+            if stem:
+                moves.append(value)
+        if not stem:
+            return value
+        else:
+            print(alpha, beta)
+            return x[np.argmin(moves)]
+        return value
+
+
+## Alternative to first scoring function, with zero-sum square value
+def score_board(board, initial_state = 0):
+    score = 0
+    ## Encourage putting the other king in check
+    if board.is_check() and not board.turn:
+        score += 1
+    if board.is_stalemate():
+        return 0.
+    elif board.is_checkmate() and board.turn:
+        return -10000.
+    elif board.is_checkmate() and not board.turn:
+        return 10000.
+    ## Iterate over entire chessboard
+    for square in chess.SQUARES:
+        piece = board.piece_at(square)
+        if piece is not None:
+            val = piece_values[piece.piece_type] + 0.1 * (4 - chess.square_manhattan_distance(square, chess.E5))
+            if piece.color == chess.WHITE:
+                score += val
+            else:
+                score -= val
+    return score
+
+
+def score_board(board, moves, initial_state = 0.):
+    '''
+    Inputs:
+    board - a chess.Board() object with the current state of the board
+    moves - a list of board.Move objects in SAN notation
+    Assumes that none of the moves in the object have already been made
+    '''
+    score = []
+    to_move = board.turn
+    for move in moves:
+        val = initial_state
+        ## Encourage putting the other king in check
+        if move.find('+') != -1 and to_move:
+            val += 1.0
+        if board.is_stalemate():
+            val = 0
+        elif move.find('#') != -1 and not to_move:
+            val -= 10000.
+        elif move.find('#') != -1 and to_move:
+            val += 10000.
+        ## If potential move is a capture, evaluate
+        if move.find('x') != -1:
+            #print(board.parse_san(move))
+            captured_piece = board.piece_at(board.parse_san(move).to_square)#; print(captured_piece)
+            val += piece_values[captured_piece.piece_type] * (1 if to_move else -1)
+        score.append(val)
+    return score
+################################################################################
 ## Neural network functions
-
 def parse_move(board, to_win):
     board_string = board.board_fen()
     next_board = []

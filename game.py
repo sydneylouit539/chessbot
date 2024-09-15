@@ -3,8 +3,6 @@ import random
 import numpy as np
 
 
-random.seed(123)
-
 def sim_game(nsim):
     result = np.zeros(nsim)
     for i in range(nsim):
@@ -48,54 +46,4 @@ def sim_game(nsim):
             print(f"Game {i+1} Result: {board.result()}")
     return np.mean(result)
 
-
-sim_game(100)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+## sim_game(100)
