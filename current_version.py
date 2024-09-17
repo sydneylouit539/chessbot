@@ -1,5 +1,7 @@
 ## Functions for current version of the game
 import chess
+import numpy as np
+
 piece_values = {
     chess.PAWN: 1,
     chess.KNIGHT: 3,
@@ -55,14 +57,16 @@ def score_move(board, move, initial_state=0., to_move=True):
         val += piece_values[captured_piece.piece_type]
     ## Small bonus to put the other king in check
     if move.find('+') != -1:
-        val += 0.5
+        val += 0.3
     ## Pawn positioning
     if not move[0].isupper():
-        val += 0.3
+        if move.find('=') != -1:
+            val += 8
+        val += 0.2
     ## Non-pawn positioning
-    else:
-        sq = board.parse_san(move)
-        val += 0.1 * (chess.square_manhattan_distance(sq.from_square, 36) - chess.square_manhattan_distance(sq.to_square, 36))
+    #else:
+        #sq = board.parse_san(move)
+        #val += 0.1 * (chess.square_manhattan_distance(sq.from_square, 36) - chess.square_manhattan_distance(sq.to_square, 36))
     return initial_state + val * direction
 
 
@@ -74,7 +78,7 @@ def sort_moves(board, moves, player = True, full = False):
         without_x = [i for i in moves if ('x' or '#' or '=') not in i]
         return with_x + without_x
     else:
-        scores = np.array([current_version.score_move(board, board.san(i), player) for i in moves])
+        scores = np.array([score_move(board, board.san(i), player) for i in moves])
         #return np.array([board.san(i) for i in moves])[np.argsort(scores * -1 if player else 1)]
         if player:
             return np.array([board.san(i) for i in moves])[np.argsort(scores)[::-1]]

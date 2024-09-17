@@ -304,6 +304,72 @@ def next_move_0_0_7(board, depth, alpha = -10000, beta = 10000, player = True, s
         return value
 
 
+def move_pair(board, depth = 2, keep = 6, initial_state = 0, player = True, stem = True):
+    #iter_num = 0
+    if board.is_checkmate() or board.is_stalemate() or depth == 0:
+        return initial_state
+    #moves = [board.san(i) for i in board.legal_moves]
+    #moves = list(board.legal_moves)
+    responses = []
+    scores = []
+    for i in board.legal_moves:
+        new_state = current_version.score_move(board, board.san(i), initial_state)
+        board.push(i)
+        ## Opponent moves
+        counters = board.legal_moves
+        ## If a move leads to checkmate either way, break the loop
+        over = board.is_checkmate()
+        if over or board.is_stalemate():
+            scores.append(over * 10000)
+            responses.append('')
+            board.pop()
+            break
+        ## Captures, checks, and promotions
+        x = []
+        for j in counters:
+            if ('x' or '#' or '=' or '+') in board.san(j):
+                x.append(j)
+            if len(x) == 0:
+                x.append(j)
+
+        z = []
+        for j in x:
+            z.append(current_version.score_move(board, board.san(j), new_state, False))
+            #iter_num += 1
+        scores.append(min(z))
+        responses.append(list(counters)[np.argmin(z)]) # responses should append a SAN
+        board.pop()
+    #print(iter_num)
+    ## Get top 'keep' moves, return if at bottom of search
+    if len(scores) >= keep and not stem:
+        top_moves = sorted(scores, reverse = player)[:keep]
+        top_indices = sorted(range(len(scores)), key=lambda j: scores[j], reverse = player)[:keep]
+    else:
+        top_indices = range(len(scores))
+    moves = list(board.legal_moves)
+    new_scores = []
+    for i in top_indices:
+        ## Push the move and opponent's best counter
+        board.push(moves[i])
+        if board.is_checkmate():
+            board.pop()
+            continue
+        board.push(responses[i])
+        new_scores.append(move_pair(board, depth - 2, keep, scores[i], player, False))
+        board.pop()
+        board.pop()
+    if not stem:
+        return new_scores
+    else:
+        if depth == 2:
+            return moves[np.argmax(new_scores)]
+        else:
+            for d in range(int(depth / 2 - 1)):
+                new_scores = [max(i) for i in new_scores]
+            #print(iter_num)
+            print([[board.san(a), round(b, 1)] for a, b in zip(moves, new_scores)])
+            return moves[np.argmax(new_scores)]
+
 ## Alternative to first scoring function, with zero-sum square value
 def score_board(board, initial_state = 0):
     score = 0
