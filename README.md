@@ -1,18 +1,19 @@
 # Cavalier
 
-Welcome to my chess bot project, known as Cavalier! This is a chess engine
-that 
+Welcome to my chess bot project, known as Cavalier! This is a C++ chess engine
+that plays a unique, knight-heavy style of chess, valuing a slow, positional
+game over an overwhelming attack.
 
 ## What is Unique?
- - My bot scores _moves_, not board positions. As a result, the tree
- search functions need to account for the existing board state, and 
- add the score of the proposed move
+ - My bot scores _moves_ rather than specific board configurations. As a 
+ result, the tree search functions need to account for the existing board state,
+ and add the score of the proposed move.
  - The move evaluations are done using 8-bit integers in C++. This may 
  potentially allow for much more storage than what would be possible 
  using a 64-bit double.
  - A knight is treated as slightly more valuable than a bishop (3.2 pawns vs. 
- 3.0 for a bishop). Almost all others consider a bishop to be at least as
- valuable as a knight.
+ 3.0 for a bishop). Almost all other chess engines consider a bishop to be at
+ least as valuable as a knight.
  
 ## What is Mine and What is Borrowed
  - The following C++ library is used to generate legal moves, as well
@@ -42,12 +43,14 @@ stated goal of playing at a 3000 Elo.
 
 ## Current Progress
 This bot is still in the extremely early stages of development, and the Elo
-level of the best bot in this project is currently about *1400*. The 
+level of the best bot in this project is currently about *1820*. The 
 current bot uses several techniques to improve performance.
+ - Efficient heuristic that evaluates a move rather than the entire board 
+(speed ~800 kn/s)
  - Alpha-beta pruning
+ - Iterative deepening
  - Move ordering and reduction
  - Opening book (Source: perfect.ctg)
- - Efficient heuristic that evaluates a move rather than the board
 
 ## Estimated Elo History
  - 7/12/2024:   30 
@@ -55,11 +58,14 @@ current bot uses several techniques to improve performance.
  - 7/14/2024: 1100
  - 7/23/2024: 1250
  - 9/15/2024: 1370
+ - 4/30/2025: 1820
 
 
-## Potential Next steps
+## Potential Next Steps
  - Early vs. Late-game heuristic changes
  - Monte Carlo search
  - NNUE (Efficiently Updatable Neural Network) evaluation
+ - Zero-window Search
+ - Zobrist hashing
 
 
